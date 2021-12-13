@@ -222,7 +222,7 @@ class ModeSolver:
             k_eff=n_eff_complex.imag,
         )
 
-    def make_source(self, mode: Mode, fwidth: float, direction: Direction) -> ModeSource:
+    def to_source(self, mode: Mode, fwidth: float, direction: Direction) -> ModeSource:
         """Creates ``ModeSource`` from a Mode + additional specifications.
 
         Parameters
@@ -246,7 +246,7 @@ class ModeSolver:
             center=center, size=size, source_time=source_time, mode=mode, direction=direction
         )
 
-    def make_monitor(self, mode: Mode, freqs: List[float], name: str) -> ModeMonitor:
+    def to_monitor(self, mode: Mode, freqs: List[float], name: str) -> ModeMonitor:
         """Creates ``ModeMonitor`` from a Mode + additional specifications.
 
         Parameters

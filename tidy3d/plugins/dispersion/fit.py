@@ -239,7 +239,7 @@ class DispersionFitter:
         log.info(f"\treturning best fit with RMS error {best_rms:.2e}")
         return best_medium, best_rms
 
-    def _make_medium(self, coeffs):
+    def to_medium(self, coeffs):
         """returns medium from coeffs from optimizer
 
         Parameters
@@ -315,7 +315,7 @@ class DispersionFitter:
                 RMS error correponding to current coeffs.
             """
 
-            medium = self._make_medium(coeffs)
+            medium = self.to_medium(coeffs)
             eps_model = medium.eps_model(self.freqs)
             residual = self.eps_data - eps_model
             rms_error = np.sqrt(np.sum(np.square(np.abs(residual))) / len(self.eps_data))
@@ -373,7 +373,7 @@ class DispersionFitter:
         rms_error = optglob.last_optimum_value()
 
         # set the latest fit
-        medium = self._make_medium(coeffs)
+        medium = self.to_medium(coeffs)
         return medium, rms_error
 
     @add_ax_if_none
