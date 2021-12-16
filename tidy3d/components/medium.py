@@ -819,5 +819,5 @@ class Debye(DispersiveMedium):
 
 # types of mediums that can be used in Simulation and Structures
 MediumType = Union[
-    Literal[PEC], Medium, AnisotropicMedium, PoleResidue, Sellmeier, Lorentz, Debye, Drude
+    Medium, AnisotropicMedium, PoleResidue, Sellmeier, Lorentz, Debye, Drude
 ]

@@ -1,6 +1,7 @@
 import pydantic
 import numpy as np
 import os
+import json
 from time import time
 
 from tidy3d import *
@@ -130,3 +131,12 @@ def test_yaml():
     sim.to_yaml(path1)
     sim1 = Simulation.from_yaml(path1)
     assert sim1 == sim
+
+@clear_tmp
+def test_schema():
+    path = "tests/tmp/schema.json"
+    schema_str = Simulation.schema()
+    with open(path, 'w') as f:
+        json.dump(schema_str, f, indent=4)
+
+

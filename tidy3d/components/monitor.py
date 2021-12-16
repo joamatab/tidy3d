@@ -64,7 +64,7 @@ class Monitor(Box, ABC):
 class FreqMonitor(Monitor, ABC):
     """Stores data in the frequency-domain."""
 
-    freqs: Union[List[float], Array[float]]
+    freqs: Union[List[float]]
 
     @pydantic.validator("freqs", always=True)
     def freqs_nonempty(cls, val):
