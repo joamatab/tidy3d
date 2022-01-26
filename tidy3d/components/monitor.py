@@ -9,7 +9,7 @@ from .types import Literal, Ax, Direction, EMField, ArrayLike, FieldType
 from .geometry import Box
 from .validators import assert_plane, validate_name_str
 from .mode import ModeSpec
-from .viz import add_ax_if_none, MonitorParams
+from .viz import add_ax_if_none, equal_aspect, MonitorParams
 from ..log import SetupError, ValidationError
 from ..constants import HERTZ, SECOND
 
@@ -24,6 +24,7 @@ class Monitor(Box, ABC):
         min_length=1,
     )
 
+    @equal_aspect
     @add_ax_if_none
     def plot(  # pylint:disable=duplicate-code
         self, x: float = None, y: float = None, z: float = None, ax: Ax = None, **kwargs
