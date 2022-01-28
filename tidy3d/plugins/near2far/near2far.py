@@ -50,6 +50,7 @@ class Near2Far:
                 f"Frequency {frequency} not found in all fields " f"from monitor '{mon_name}'."
             ) from e
 
+        # todo: generalize for arbitrary background materials
         self.k0 = 2 * np.pi * frequency / C_0
 
         # grid sizes
