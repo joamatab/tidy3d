@@ -31,7 +31,7 @@ def main():
     path = str(args.path)
     threshold = float(args.threshold)
 
-    logging.info("PyLint Starting | " "Path: {} | " "Threshold: {} ".format(path, threshold))
+    logging.info(f"PyLint Starting | Path: {path} | Threshold: {threshold} ")
 
     results = Run([path], do_exit=False)
 
@@ -42,13 +42,13 @@ def main():
 
     if final_score < threshold:
 
-        message = "PyLint Failed | " "Score: {} | " "Threshold: {} ".format(final_score, threshold)
+        message = f"PyLint Failed | Score: {final_score} | Threshold: {threshold} "
 
         logging.error(message)
         raise Exception(message)
 
     else:
-        message = "PyLint Passed | " "Score: {} | " "Threshold: {} ".format(final_score, threshold)
+        message = f"PyLint Passed | Score: {final_score} | Threshold: {threshold} "
 
         logging.info(message)
 

@@ -60,7 +60,7 @@ class ModeSpec(Tidy3dBaseModel):
     )
 
     @pd.validator("bend_axis", always=True)
-    def bend_axis_given(cls, val, values):
+    def bend_axis_given(self, val, values):
         """check that ``bend_axis`` is provided if ``bend_radius`` is not ``None``"""
         if val is None and values.get("bend_radius") is not None:
             raise SetupError("bend_axis must also be defined if bend_radius is defined.")

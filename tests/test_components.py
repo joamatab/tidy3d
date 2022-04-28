@@ -25,7 +25,7 @@ def assert_log_level(caplog, log_level_expected):
         raise Exception
 
     # both expected and got log, check the log levels match
-    if logs and log_level_expected:
+    if logs:
         for log in logs:
             log_level = log[1]
             if log_level == log_level_expected:

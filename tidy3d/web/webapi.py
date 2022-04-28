@@ -405,11 +405,10 @@ def get_tasks(num_tasks: int = None, order: Literal["new", "old"] = "new") -> Li
     if num_tasks is None or num_tasks > len(sort_inds):
         num_tasks = len(sort_inds)
 
-    out_dict = []
-    for ipr in range(num_tasks):
-        out_dict.append({key: item[sort_inds[ipr]] for (key, item) in store_dict.items()})
-
-    return out_dict
+    return [
+        {key: item[sort_inds[ipr]] for (key, item) in store_dict.items()}
+        for ipr in range(num_tasks)
+    ]
 
 
 def _upload_task(  # pylint:disable=too-many-locals,too-many-arguments
@@ -485,7 +484,7 @@ def _download_file(task_id: TaskId, fname: str, path: str) -> None:
     try:
         client, bucket, user_id = get_s3_user()
 
-        if fname in ("monitor_data.hdf5", "tidy3d.log"):
+        if fname in {"monitor_data.hdf5", "tidy3d.log"}:
             key = f"users/{user_id}/{task_id}/output/{fname}"
         else:
             key = f"users/{user_id}/{task_id}/{fname}"

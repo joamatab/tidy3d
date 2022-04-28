@@ -136,21 +136,13 @@ class TimeMonitor(Monitor, ABC):
                 tind_end = int(tend[-1] + 1)
 
         # Step to compare to in order to handle t_start = t_stop
-        if np.array(tmesh).size < 2:
-            dt = 1e-20
-        else:
-            dt = tmesh[1] - tmesh[0]
-
+        dt = 1e-20 if np.array(tmesh).size < 2 else tmesh[1] - tmesh[0]
         # If equal start and stopping time, record one time step
         if np.abs(self.start - t_stop) < dt:
             tind_beg = max(tind_end - 1, 0)
         else:
-            tbeg = np.nonzero(tmesh[0:tind_end] >= self.start)[0]
-            if tbeg.size > 0:
-                tind_beg = tbeg[0]
-            else:
-                tind_beg = tind_end
-
+            tbeg = np.nonzero(tmesh[:tind_end] >= self.start)[0]
+            tind_beg = tbeg[0] if tbeg.size > 0 else tind_end
         return (tind_beg, tind_end)
 
 
@@ -163,7 +155,7 @@ class AbstractFieldMonitor(Monitor, ABC):
         description="Collection of field components to store in the monitor.",
     )
 
-    def surfaces(self) -> List["AbstractFieldMonitor"]:  # pylint: disable=too-many-locals
+    def surfaces(self) -> List["AbstractFieldMonitor"]:    # pylint: disable=too-many-locals
         """Returns a list of 6 monitors corresponding to each surface of the field monitor.
         The output monitors are stored in the order [x-, x+, y-, y+, z-, z+], where x, y, and z
         denote which axis is perpendicular to that surface, while "-" and "+" denote the direction
@@ -213,13 +205,14 @@ class AbstractFieldMonitor(Monitor, ABC):
         )
 
         surface_names = (
-            self.name + "_x-",
-            self.name + "_x+",
-            self.name + "_y-",
-            self.name + "_y+",
-            self.name + "_z-",
-            self.name + "_z+",
+            f"{self.name}_x-",
+            f"{self.name}_x+",
+            f"{self.name}_y-",
+            f"{self.name}_y+",
+            f"{self.name}_z-",
+            f"{self.name}_z+",
         )
+
 
         # Create "surface" monitors
         monitors = []

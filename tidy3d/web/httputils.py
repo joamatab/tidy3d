@@ -39,10 +39,8 @@ def handle_response(func):
 
         # if it was successful, try returning data from the response
         try:
-            json_data = resp.json()["data"]
-            return json_data
+            return resp.json()["data"]
 
-        # if that doesnt work, raise
         except Exception as e:
             raise WebError(f"Could not decode response json: {resp.text})") from e
 

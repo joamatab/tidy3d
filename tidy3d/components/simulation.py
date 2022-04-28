@@ -325,7 +325,7 @@ class Simulation(Box):  # pylint:disable=too-many-public-methods
             return val
 
         structures = values.get("structures")
-        structures = [] if not structures else structures
+        structures = structures or []
         medium_bg = values.get("medium")
         mediums = [medium_bg] + [structure.medium for structure in structures]
 
@@ -349,14 +349,14 @@ class Simulation(Box):  # pylint:disable=too-many-public-methods
         return val
 
     @pydantic.validator("sources", always=True)
-    def _warn_grid_size_too_small(cls, val, values):  # pylint:disable=too-many-locals
+    def _warn_grid_size_too_small(cls, val, values):    # pylint:disable=too-many-locals
         """Warn user if any grid size is too large compared to minimum wavelength in material."""
 
         if val is None:
             return val
 
         structures = values.get("structures")
-        structures = [] if not structures else structures
+        structures = structures or []
         medium_bg = values.get("medium")
         grid_size = values.get("grid_size")
         mediums = [medium_bg] + [structure.medium for structure in structures]
@@ -372,17 +372,19 @@ class Simulation(Box):  # pylint:disable=too-many-public-methods
                 lambda_min = C_0 / f_average / n_material
 
                 for dl in grid_size:
-                    if isinstance(dl, float):
-                        if dl > lambda_min / MIN_GRIDS_PER_WVL:
-                            log.warning(
-                                f"One of the grid sizes with a value of {dl:.4f} (um) "
-                                "was detected as being too large when compared to the "
-                                "central wavelength of a source within one of the "
-                                f"simulation mediums {lambda_min:.4f} (um).  "
-                                "To avoid inaccuracies, it is reccomended the grid size is "
-                                "reduced."
-                            )
-                    # TODO: warn about nonuniform grid
+                    if (
+                        isinstance(dl, float)
+                        and dl > lambda_min / MIN_GRIDS_PER_WVL
+                    ):
+                        log.warning(
+                            f"One of the grid sizes with a value of {dl:.4f} (um) "
+                            "was detected as being too large when compared to the "
+                            "central wavelength of a source within one of the "
+                            f"simulation mediums {lambda_min:.4f} (um).  "
+                            "To avoid inaccuracies, it is reccomended the grid size is "
+                            "reduced."
+                        )
+                                # TODO: warn about nonuniform grid
 
         return val
 
@@ -403,7 +405,7 @@ class Simulation(Box):  # pylint:disable=too-many-public-methods
         )
 
         structures = values.get("structures")
-        structures = [] if not structures else structures
+        structures = structures or []
         total_structures = [structure_bg] + structures
 
         # for each plane wave in the sources list
@@ -975,9 +977,7 @@ class Simulation(Box):  # pylint:disable=too-many-public-methods
             shapes_plane = structure.geometry.intersections(x=x, y=y, z=z)
 
             # Append each of them and their medium information to the list of shapes
-            for shape in shapes_plane:
-                shapes.append((structure.medium, shape))
-
+            shapes.extend((structure.medium, shape) for shape in shapes_plane)
         background_shapes = []
         for medium, shape in shapes:
 
@@ -1017,8 +1017,8 @@ class Simulation(Box):  # pylint:disable=too-many-public-methods
             at 5 standard deviations.
         """
         source_ranges = [source.source_time.frequency_range for source in self.sources]
-        freq_min = min([freq_range[0] for freq_range in source_ranges], default=0.0)
-        freq_max = max([freq_range[1] for freq_range in source_ranges], default=0.0)
+        freq_min = min((freq_range[0] for freq_range in source_ranges), default=0.0)
+        freq_max = max((freq_range[1] for freq_range in source_ranges), default=0.0)
         return (freq_min, freq_max)
 
     """ Discretization """
@@ -1033,7 +1033,7 @@ class Simulation(Box):  # pylint:disable=too-many-public-methods
             Time step (seconds).
         """
         dl_mins = [np.min(sizes) for sizes in self.grid.sizes.to_list]
-        dl_sum_inv_sq = sum([1 / dl ** 2 for dl in dl_mins])
+        dl_sum_inv_sq = sum(1 / dl ** 2 for dl in dl_mins)
         dl_avg = 1 / np.sqrt(dl_sum_inv_sq)
         return self.courant * dl_avg / C_0
 
@@ -1157,9 +1157,7 @@ class Simulation(Box):  # pylint:disable=too-many-public-methods
         last_step = bounds[-1] - bounds[-2]
         add_left = bounds[0] - first_step * np.arange(num_layers[0], 0, -1)
         add_right = bounds[-1] + last_step * np.arange(1, num_layers[1] + 1)
-        new_bounds = np.concatenate((add_left, bounds, add_right))
-
-        return new_bounds
+        return np.concatenate((add_left, bounds, add_right))
 
     @property
     def wvl_mat_min(self) -> float:
@@ -1280,12 +1278,10 @@ class Simulation(Box):  # pylint:disable=too-many-public-methods
 
         def get_eps(medium: Medium, freq: float):
             """Select the correct epsilon component if field locations are requested."""
-            if coord_key[0] == "E":
-                component = ["x", "y", "z"].index(coord_key[1])
-                eps = medium.eps_diagonal(freq)[component]
-            else:
-                eps = medium.eps_model(freq)
-            return eps
+            if coord_key[0] != "E":
+                return medium.eps_model(freq)
+            component = ["x", "y", "z"].index(coord_key[1])
+            return medium.eps_diagonal(freq)[component]
 
         eps_background = get_eps(self.medium, freq)
 

@@ -782,8 +782,8 @@ class Cylinder(Circular, Planar):
         Tuple[float, float, float], Tuple[float, float, float]
             Min and max bounds packaged as ``(minx, miny, minz), (maxx, maxy, maxz)``.
         """
-        coord_min = list(c - self.radius for c in self.center)
-        coord_max = list(c + self.radius for c in self.center)
+        coord_min = [c - self.radius for c in self.center]
+        coord_max = [c + self.radius for c in self.center]
         coord_min[self.axis] = self.center[self.axis] - self.length / 2.0
         coord_max[self.axis] = self.center[self.axis] + self.length / 2.0
         return (tuple(coord_min), tuple(coord_max))

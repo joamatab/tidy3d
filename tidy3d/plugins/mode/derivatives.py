@@ -90,10 +90,10 @@ def create_S_matrices(omega, shape, npml, dLf, dLb, dmin_pml=(True, True)):
     Sy_b_2D = np.zeros(shape, dtype=np.complex128)
 
     # Insert the cross sections into the S-grids (could be done more elegantly)
-    for i in range(0, Ny):
+    for i in range(Ny):
         Sx_f_2D[:, i] = 1 / s_vector_x_f
         Sx_b_2D[:, i] = 1 / s_vector_x_b
-    for i in range(0, Nx):
+    for i in range(Nx):
         Sy_f_2D[i, :] = 1 / s_vector_y_f
         Sy_b_2D[i, :] = 1 / s_vector_y_b
 
@@ -125,7 +125,7 @@ def create_sfactor(direction, omega, dLs, N, N_pml, dmin_pml):
     elif direction == "b":
         return create_sfactor_b(omega, dLs, N, N_pml, dmin_pml)
     else:
-        raise ValueError("Direction value {} not recognized".format(direction))
+        raise ValueError(f"Direction value {direction} not recognized")
 
 
 def create_sfactor_f(omega, dLs, N, N_pml, dmin_pml):

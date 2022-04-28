@@ -92,14 +92,10 @@ class StableDispersionFitter(DispersionFitter):
         """
 
         _env = config_env
-        if config_env == "default":
+        if _env == "default":
             from ...web.config import DEFAULT_CONFIG  # pylint:disable=import-outside-toplevel
 
-            if "dev" in DEFAULT_CONFIG.web_api_endpoint:
-                _env = "dev"
-            else:
-                _env = "prod"
-
+            _env = "dev" if "dev" in DEFAULT_CONFIG.web_api_endpoint else "prod"
         return URL_ENV[_env]
 
     def fit(  # pylint:disable=arguments-differ, too-many-arguments, too-many-locals

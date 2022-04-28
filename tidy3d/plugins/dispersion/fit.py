@@ -111,9 +111,8 @@ def _coeffs_to_poles(coeffs):
     """
     coeffs_scaled = coeffs / HBAR
     poles_a, poles_c = _unpack_coeffs(coeffs_scaled)
-    poles = [(complex(a), complex(c)) for (a, c) in zip(poles_a, poles_c)]
     # poles = [((a.real, a.imag), (c.real, c.imag)) for (a, c) in zip(poles_a, poles_c)]
-    return poles
+    return [(complex(a), complex(c)) for (a, c) in zip(poles_a, poles_c)]
 
 
 def _poles_to_coeffs(poles):
@@ -343,9 +342,8 @@ class DispersionFitter:
             medium = self._make_medium(coeffs)
             eps_model = medium.eps_model(self.freqs)
             residual = self.eps_data - eps_model
-            rms_error = np.sqrt(np.sum(np.square(np.abs(residual))) / len(self.eps_data))
             # cons = constraint(coeffs, _grad)
-            return rms_error
+            return np.sqrt(np.sum(np.square(np.abs(residual))) / len(self.eps_data))
 
         # set initial guess
         num_coeffs = num_poles * 4

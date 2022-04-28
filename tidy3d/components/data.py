@@ -100,8 +100,7 @@ class Tidy3dData(Tidy3dBaseModel):
     def decode_bytes_array(array_of_bytes: Numpy) -> List[str]:
         """Convert numpy array containing bytes to list of strings."""
         list_of_bytes = array_of_bytes.tolist()
-        list_of_str = [v.decode("utf-8") for v in list_of_bytes]
-        return list_of_str
+        return [v.decode("utf-8") for v in list_of_bytes]
 
 
 class MonitorData(Tidy3dData, ABC):
@@ -189,11 +188,11 @@ class MonitorData(Tidy3dData, ABC):
         """Load Monitor data instance from an hdf5 group."""
 
         # kwargs that gets passed to MonitorData.__init__() to make new MonitorData
-        kwargs = {}
+        kwargs = {
+            data_name: np.array(data_value)
+            for data_name, data_value in hdf5_grp.items()
+        }
 
-        # construct kwarg dict from hdf5 data group for monitor
-        for data_name, data_value in hdf5_grp.items():
-            kwargs[data_name] = np.array(data_value)
 
         # handle data stored as np.array() of bytes instead of strings
         for str_kwarg in ("direction",):
@@ -231,22 +230,20 @@ class CollectionData(Tidy3dData):
             For more details refer to `xarray's Documentaton <https://tinyurl.com/2zrzsp7b>`_.
         """
 
-        data_arrays = {name: arr.data for name, arr in self.data_dict.items()}
-        return data_arrays
+        return {name: arr.data for name, arr in self.data_dict.items()}
 
     def __eq__(self, other):
         """Check for equality against other :class:`AbstractFieldData` object."""
 
         # same keys?
-        if not all(k in other.data_dict.keys() for k in self.data_dict.keys()):
+        if any(k not in other.data_dict.keys() for k in self.data_dict.keys()):
             return False
-        if not all(k in self.data_dict.keys() for k in other.data_dict.keys()):
+        if any(k not in self.data_dict.keys() for k in other.data_dict.keys()):
             return False
-        # same data?
-        for data_name, data_value in self.data_dict.items():
-            if data_value != other.data_dict[data_name]:
-                return False
-        return True
+        return all(
+            data_value == other.data_dict[data_name]
+            for data_name, data_value in self.data_dict.items()
+        )
 
     def __getitem__(self, field_name: str) -> xr.DataArray:
         """Get the :class:`MonitorData` xarray representation by name (``col_data[field_name]``).
@@ -310,50 +307,32 @@ class AbstractFieldData(CollectionData, ABC):
     @property
     def Ex(self):
         """Get Ex component of field using '.Ex' syntax."""
-        scalar_data = self.data_dict.get("Ex")
-        if scalar_data:
-            return scalar_data.data
-        return None
+        return scalar_data.data if (scalar_data := self.data_dict.get("Ex")) else None
 
     @property
     def Ey(self):
         """Get Ey component of field using '.Ey' syntax."""
-        scalar_data = self.data_dict.get("Ey")
-        if scalar_data:
-            return scalar_data.data
-        return None
+        return scalar_data.data if (scalar_data := self.data_dict.get("Ey")) else None
 
     @property
     def Ez(self):
         """Get Ez component of field using '.Ez' syntax."""
-        scalar_data = self.data_dict.get("Ez")
-        if scalar_data:
-            return scalar_data.data
-        return None
+        return scalar_data.data if (scalar_data := self.data_dict.get("Ez")) else None
 
     @property
     def Hx(self):
         """Get Hx component of field using '.Hx' syntax."""
-        scalar_data = self.data_dict.get("Hx")
-        if scalar_data:
-            return scalar_data.data
-        return None
+        return scalar_data.data if (scalar_data := self.data_dict.get("Hx")) else None
 
     @property
     def Hy(self):
         """Get Hy component of field using '.Hy' syntax."""
-        scalar_data = self.data_dict.get("Hy")
-        if scalar_data:
-            return scalar_data.data
-        return None
+        return scalar_data.data if (scalar_data := self.data_dict.get("Hy")) else None
 
     @property
     def Hz(self):
         """Get Hz component of field using '.Hz' syntax."""
-        scalar_data = self.data_dict.get("Hz")
-        if scalar_data:
-            return scalar_data.data
-        return None
+        return scalar_data.data if (scalar_data := self.data_dict.get("Hz")) else None
 
     def colocate(self, x, y, z) -> xr.Dataset:
         """colocate all of the data at a set of x, y, z coordinates.
@@ -699,32 +678,28 @@ class ModeData(CollectionData):
     @property
     def amps(self):
         """Get mode amplitudes."""
-        scalar_data = self.data_dict.get("amps")
-        if scalar_data:
+        if scalar_data := self.data_dict.get("amps"):
             return scalar_data.data
         return None
 
     @property
     def n_complex(self):
         """Get complex effective indexes."""
-        scalar_data = self.data_dict.get("n_complex")
-        if scalar_data:
+        if scalar_data := self.data_dict.get("n_complex"):
             return scalar_data.data
         return None
 
     @property
     def n_eff(self):
         """Get real part of effective index."""
-        scalar_data = self.data_dict.get("n_complex")
-        if scalar_data:
+        if scalar_data := self.data_dict.get("n_complex"):
             return scalar_data.data.real
         return None
 
     @property
     def k_eff(self):
         """Get imaginary part of effective index."""
-        scalar_data = self.data_dict.get("n_complex")
-        if scalar_data:
+        if scalar_data := self.data_dict.get("n_complex"):
             return scalar_data.data.imag
         return None
 
@@ -780,8 +755,7 @@ class SimulationData(Tidy3dBaseModel):
         lines = log_str.split("\n")
         decay_lines = [l for l in lines if "field decay" in l]
         final_decay_line = decay_lines[-1]
-        final_decay = float(final_decay_line.split("field decay: ")[-1])
-        return final_decay
+        return float(final_decay_line.split("field decay: ")[-1])
 
     def __getitem__(self, monitor_name: str) -> Union[Tidy3dDataArray, xr.Dataset]:
         """Get the :class:`MonitorData` xarray representation by name (``sim_data[monitor_name]``).
@@ -842,13 +816,10 @@ class SimulationData(Tidy3dBaseModel):
         sub_grid = self.simulation.discretize(monitor)
         centers = sub_grid.centers
 
-        # colocate each of the field components at centers
-        field_dataset = field_monitor_data.colocate(x=centers.x, y=centers.y, z=centers.z)
-        return field_dataset
+        return field_monitor_data.colocate(x=centers.x, y=centers.y, z=centers.z)
 
     @equal_aspect
     @add_ax_if_none
-    # pylint:disable=too-many-arguments, too-many-locals, too-many-branches, too-many-statements
     def plot_field(
         self,
         field_monitor_name: str,
@@ -957,11 +928,7 @@ class SimulationData(Tidy3dBaseModel):
             elif val == "abs":
                 field_data = abs(field_data)
 
-        if val == "abs" or field_name == "int":
-            cmap = "magma"
-        else:
-            cmap = "RdBu"
-
+        cmap = "magma" if val == "abs" or field_name == "int" else "RdBu"
         # plot the field
         xy_coord_labels = list("xyz")
         xy_coord_labels.pop(axis)
@@ -1104,14 +1071,12 @@ class SimulationData(Tidy3dBaseModel):
                 monitor_data_instance = _data_type.load_from_group(monitor_data)
                 monitor_data_dict[monitor_name] = monitor_data_instance
 
-        sim_data = cls(
+        return cls(
             simulation=simulation,
             monitor_data=monitor_data_dict,
             log_string=log_string,
             diverged=diverged,
         )
-
-        return sim_data
 
     def __eq__(self, other):
         """Check equality against another :class:`SimulationData` instance.

@@ -1,4 +1,5 @@
 """ command-line interface. For instructions run `python -m tidy3d --help` """
+
 import sys
 import argparse
 
@@ -93,7 +94,3 @@ if inspect_credits:
 job.start()
 job.monitor()
 sim_data = job.load(path=out_file)
-
-# visualize results
-if viz_results:
-    pass

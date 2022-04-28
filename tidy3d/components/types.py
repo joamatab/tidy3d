@@ -159,7 +159,7 @@ class TypedArray(np.ndarray):
 class ArrayMeta(type):
     """metclass for Array, enables Array[type] -> TypedArray"""
 
-    def __getitem__(cls, t):
+    def __getitem__(self, t):
         """Array[t] -> TypedArray"""
         return type("Array", (TypedArray,), {"inner_type": t})
 
